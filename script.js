@@ -5,7 +5,7 @@ class StartGame {
     this.difficultySelect = document.getElementById('difficulty');
     this.settingsBtn = document.getElementById('settings-btn');
     this.settings = document.getElementById('settings');
-    this.difficultySelect.addEventListener('change', this.setDifficulty.bind(this));
+    this.difficultySelect.addEventListener('click', this.setDifficulty.bind(this));
     this.start.addEventListener('click', this.startGame.bind(this));
     this.settingsBtn.addEventListener('click', this.hide.bind(this));
     this.difficultyValue;
@@ -16,7 +16,9 @@ class StartGame {
   }
 
   setDifficulty(e) {
-    this.difficultyValue = e.target.value;
+    if (this.difficultySelect.selectedIndex !== 0) {
+      this.difficultyValue = e.target.value;
+    }
   }
    
   hideEndGameContainer() {
@@ -24,7 +26,7 @@ class StartGame {
   }
 
   async startGame() {
-    if (!this.difficultyValue) {
+    if (this.difficultySelect.selectedIndex === 0) {
       this.endgameEl.innerHTML = `<div>Please choose a difficulty first</div>
       <button onclick="startGame.hideEndGameContainer()">
       Start Again
@@ -37,9 +39,8 @@ class StartGame {
   }
 }
 
-class Game extends StartGame{
+class Game {
   constructor(difficulty) {
-    super();
     this.difficulty = difficulty;
     this.wordContainer = document.getElementById('word');
     this.text = document.getElementById('text');
@@ -56,6 +57,7 @@ class Game extends StartGame{
     this.timeEl = document.getElementById('time');
     this.wordsLeft = document.getElementById('words-left');
     this.text.addEventListener('input', this.evaluate.bind(this));
+    this.words = [];
   }
 
   setings() {
@@ -64,13 +66,20 @@ class Game extends StartGame{
     this.wordsNum = this.difficulty === 'easy' ? 10 : this.difficulty === 'medium' ? 7 : this.difficulty === 'hard' ? 4 : null;
   }
 
+  // reset() {
+  //   this.wordArray = [];
+  //   this.index = 0;
+  //   this.score = 0;
+  // }  
+
   async game() {
+    // this.reset();
     //this.start.disabled = "true";
     this.text.focus();
     this.setings();
     this.initialCountdown = this.countDown;
-    const word = await SetWords.fetchWord(this.wordLength, this.wordsNum);
-    this.wordArray.push(word);
+    this.words = await SetWords.fetchWord(this.wordLength, this.wordsNum);
+    this.wordArray.push(this.words);
     this.myCountdown = setInterval(this.myCountdownFunc.bind(this), 1000);
     this.wordContainer.textContent = this.wordArray[0][this.index];
     this.myInterval = setInterval(this.myIntervalFunc.bind(this), this.countDown * 1000);
@@ -87,22 +96,11 @@ class Game extends StartGame{
     this.scoreEl.textContent = this.score;
   }
 
-  setRemainingWordNum() {
-    this.wordsLeft.textContent = `Words left: ${this.wordsNum}`;
-    if (this.wordsNum === 0) {
-      //this.start.disabled = "false";
-      const gameOver = new GameOver();
-      gameOver.gameOver();
-    }
-  }
-
   evaluate() {
     if (this.text.value === this.wordContainer.textContent) {
-      this.text.value = "";
       this.addScore();
       this.clearIntervals();
-      this.index++;
-      this.wordContainer.textContent = this.wordArray[0][this.index];
+      this.moveNext();
       this.countDown = this.initialCountdown;
       this.myCountdown = setInterval(this.myCountdownFunc.bind(this), 1000);
       this.myInterval = setInterval(this.myIntervalFunc.bind(this), this.countDown * 1000);
@@ -121,20 +119,34 @@ class Game extends StartGame{
     }
   }
 
+  moveNext() {
+    this.index++;
+    this.text.value = "";
+    this.wordContainer.textContent = this.wordArray[0][this.index];
+  }
+
   myIntervalFunc() {
     if (this.wordsNum > 0) {
-      this.index++;
-      this.text.value = "";
-      this.wordContainer.textContent = this.wordArray[0][this.index];
+      this.moveNext();
       this.wordsNum--;
       this.setRemainingWordNum();
     } 
   }
+
+  setRemainingWordNum() {
+    this.wordsLeft.textContent = `Words left: ${this.wordsNum}`;
+    if (this.wordsNum === 0) {
+      //this.start.disabled = "false";
+      const gameOver = new GameOver(this.score);
+      gameOver.gameOver();
+    }
+  } 
 }
 
 class GameOver extends Game {
-  constructor() {
+  constructor(score) {
     super();
+    this.score = score;
     this.endgameEl = document.getElementById('end-game-container');
   }
 
@@ -161,6 +173,8 @@ class HideEndGameContainer {
   static hideEndGameContainer() {
     const endgameEl = document.getElementById('end-game-container');
     endgameEl.style.display = 'none';
+    const scoreEl = document.getElementById('score');
+    scoreEl.textContent = 0;
   }
   
 }
@@ -181,4 +195,3 @@ class GetWords {
 }
 
 const startGame = new StartGame();
-

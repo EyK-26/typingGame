@@ -1,13 +1,3 @@
-// const word = document.getElementById('word');
-// const text = document.getElementById('text');
-// const scoreEl = document.getElementById('score');
-// const timeEl = document.getElementById('time');
-// const endgameEl = document.getElementById('end-game-container');
-// const settingsBtn = document.getElementById('settings-btn');
-// const settings = document.getElementById('settings');
-// const settingsForm = document.getElementById('settings-form');
-// const difficultySelect = document.getElementById('difficulty');
-
 class StartGame {
   constructor() {
     this.endgameEl = document.getElementById('end-game-container');
@@ -153,7 +143,7 @@ class GameOver extends Game {
     this.wordsLeft.textContent = "Words left: 0";
     this.timeEl.textContent = "";
     this.endgameEl.innerHTML = `<div>Game Over. Score: ${this.score}</div>
-      <button onclick="hideEndGameContainer()">
+      <button onclick="HideEndGameContainer.hideEndGameContainer()">
       Exit
       </button>`;
     this.endgameEl.style.display = "flex";
@@ -165,6 +155,14 @@ class SetWords {
     const word = await GetWords.getWords(wordLength, wordsNum)
     return word;
   }
+}
+
+class HideEndGameContainer {
+  static hideEndGameContainer() {
+    const endgameEl = document.getElementById('end-game-container');
+    endgameEl.style.display = 'none';
+  }
+  
 }
 
 class GetWords {
@@ -184,7 +182,3 @@ class GetWords {
 
 const startGame = new StartGame();
 
-function hideEndGameContainer() {
-  const endgameEl = document.getElementById('end-game-container');
-  endgameEl.style.display = 'none';
-}
